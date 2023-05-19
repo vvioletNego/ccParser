@@ -1,4 +1,3 @@
-# Ccparser
 ## 1. Code clone  analysis tool	
 
 This is a code clone analysis tool and it can support the following functionalities:	
@@ -39,11 +38,11 @@ Besides, you can change the context of `urls.txt` so that you can download the s
 
 #### 2.4 Code clone detection
 
-Use `Simian-2.5.10` to detect all the code clones of source files. See [Docs | Simian Similarity Analyzer (quandarypeak.com)](https://simian.quandarypeak.com/docs/) to set par grams you need. Put the clone detection results in `/clone-xml` (we already put all the results we use in the `/clone-xml`), and make sure the file name of clone results refers to the example in `/clone-xml`.
+Use `Simian-2.5.10` to detect all the code clones of source files. See [Docs | Simian Similarity Analyzer (quandarypeak.com)](https://simian.quandarypeak.com/docs/) to set par grams you need (**note**: Because simian only supports C++ files with the suffix `.cpp`. In order to detect `.cc` files in Apollo, you'll have to change  all `.cc` suffixes to `.cpp` suffixes, if your OS is `windows`, you can put `/source/rename.bat` in the main directory of the source code, eg. `apollo-1.0.0/apollo-1.0.0/`, and run this batch command. And if your OS is `Linux`, you can use the command `find . -name "*.cc" -exec bash -c 'mv "$1" "${1%.cc}".cpp' - '{}' \;` Or you can write your own command to complete this work.). Put the clone detection results in `/clone-xml` (we already put all the results we use in the `/clone-xml`), and make sure the file name of clone results refers to the example in `/clone-xml`.
 
 #### 2.5 Module distribution analysis
 
-`cd` to '/analysisUtil' and run the following command:
+`cd` to `/analysisUtil` and run the following command:
 
 ```
 $ python module_sort.py
@@ -61,7 +60,7 @@ $ python extract_commit.py
 
 Enter the corresponding parameters according to the prompt. And all bug-fixing commits information will be stored in `/time-commit`.
 
-`cd` to '/analysisUtil' and run the following command:
+`cd` to `/analysisUtil` and run the following command:
 
 ```
 $ python bug_induce_clone.py
@@ -71,7 +70,7 @@ all the results will be put in `results/apollo_bug_induce_results.xls` and `resu
 
 #### 2.7 Co-modified clones detection
 
-To extract all co-modified clones in the corresponding project, `cd` to '/analysisUtil' and run the following command:
+To extract all co-modified clones in the corresponding project, `cd` to `/analysisUtil` and run the following command:
 
 ```
 $ python clone_comodify.py
