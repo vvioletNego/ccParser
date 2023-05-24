@@ -1,4 +1,5 @@
 ## 1. Code clone  analysis tool	
+[![Backers on Open Collective](https://img.shields.io/badge/python-3.10-orange.svg?style=flat-square)](#backers)
 
 This is a code clone analysis tool and it can support the following functionalities:	
 
