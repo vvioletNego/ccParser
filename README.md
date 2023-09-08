@@ -81,4 +81,5 @@ all the co-modified clone results will be put in `results/apollo_comodify_dup_re
 
 ## 3. Publication
 If you are interested in our work, you can find more details in our paper listed below. If you use our dateset and tool, please cite our paper.
+A Comprehensive Study on Code Clones in Automated Driving Software
 38th International Conference on Automated Software Engineering (ASE'23)
