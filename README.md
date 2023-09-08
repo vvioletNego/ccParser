@@ -80,8 +80,8 @@ $ python clone_comodify.py
 all the co-modified clone results will be put in `results/apollo_comodify_dup_results.xls` and `results/apollo_comodify_dup_results.xls`. And all the change lines information will be put in `results/apollo_comodify_dup_results.xls` and `results/autoware_change_commodify_results.xls`.
 
 ## 3. Publication
-If you are interested in our work, you can find more details in our paper listed below. If you use our dateset and tool, please cite our paper.
-A Comprehensive Study on Code Clones in Automated Driving Software
+If you are interested in our work, you can find more details in our paper listed below. If you use our dateset and tool, please cite our paper.  
+A Comprehensive Study on Code Clones in Automated Driving Software  
 38th International Conference on Automated Software Engineering (ASE'23)
 
 
