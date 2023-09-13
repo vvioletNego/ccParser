@@ -4,13 +4,14 @@ import difflib
 import os
 import re
 import chardet
-from util import read_commit, read_clone, module_utl, write_in_xsl
+from util import read_commit, read_clone, write_in_xsl, module_utl
 
 codes_file = {}  # 文件名对应的代码内容，避免重读
 bug_induce_result_dic = {}  # 存储结果的字典
 bug_commit_list = []  # 存储与克隆相关的提交
 bug_fix_time = datetime.timedelta(seconds=0)  # 与克隆相关的提交的平均修复时间
 all_bug_induce_result = []  # 检索的所有版本的结果
+ver_num = 5
 
 
 def parse_xml(commit_xml, clone_xml):  # 读取提交和克隆信息的xml文件存储到相应的字典中
@@ -22,7 +23,6 @@ def parse_xml(commit_xml, clone_xml):  # 读取提交和克隆信息的xml文件
 
 def detect(clone_block_dic, commit_dic):
     common_sourcefile = clone_block_dic.keys() & commit_dic.keys()  # 求出两者共有的文件路径
-    # bug_induce_result_dic = {}  # 用于存储错误诱导的克隆对结果的字典，以克隆对的id为key
     for sourcefile in common_sourcefile:
         commit_list = commit_dic[sourcefile]  # 获取该文件路径对应的提交列表
         clone_list = clone_block_dic[sourcefile]  # 获取该文件路径对应的克隆信息列表
@@ -34,7 +34,8 @@ def detect(clone_block_dic, commit_dic):
             for clone in clone_list:
                 clone_temp = clone.copy()  # 因为每次都要重新判断原始文件与提交前文件的差异，更改可能不依靠顺序，所以不能直接修改原来的克隆列表中信息
                 old_sourcefile = clone_temp['old_sourcefile']  # 获取该文件在克隆检测时的文件路径
-                if not old_sourcefile.replace("\\", "/").find('/'.join(commit['old_sourcefile'].replace(".cc", ".cpp").split('/')[-3:-1])) > -1:
+                if not old_sourcefile.replace("\\", "/").find(
+                        '/'.join(commit['old_sourcefile'].replace(".cc", ".cpp").split('/')[-3:-1])) > -1:
                     continue  # 如果文件路径不对就跳过(为了能够检测到文件路径发生变化之后的对比后三级目录)
                 if codes_file.get(old_sourcefile):
                     codes = codes_file[old_sourcefile]
@@ -124,7 +125,7 @@ def sort_count(L):  # 将列表中元素分组然后计数
     return M
 
 
-def extract_fix_time(commit_dic):  # 提取所有的提交数量 和修复时间
+def extract_fix_time(commit_dic):  # 提取所有的提交数量和修复时间
     commit_index_list = []  # 所有的提交哈希值
     commit_fix_time = datetime.timedelta(seconds=0)  # 所有提交的修复时间总和
     for commit_list in commit_dic.values():
@@ -136,60 +137,18 @@ def extract_fix_time(commit_dic):  # 提取所有的提交数量 和修复时间
     return len(commit_index_list), commit_fix_time
 
 
-def n_version_extract(v0_filename, num):
+def n_version_detect(start_file, commit_files):
     global bug_induce_result_dic, bug_commit_list, bug_fix_time
     bug_induce_result_dic = {}  # 存储结果的字典
     bug_commit_list = []  # 存储与克隆相关的提交
     bug_fix_time = datetime.timedelta(seconds=0)  # 与克隆相关的提交的平均修复时间
-    commit_xml_list = []  # 用于检测的提交的文件路径列表
     sum_commit_count = 0  # 所有的提交数量
     sum_commit_time = datetime.timedelta(seconds=0)  # 所有的提交的修复时间
 
-    pre_sourcefile = "../clone_xml/"
-    pre_sourcefile += "apollo/" + v0_filename if v0_filename.find("apollo") > -1 else "autoware/" + v0_filename
-    # 获取起始克隆结果的文件路径
-
-    path = os.getcwd()  # 获取当前目录
-    parent = os.path.join(path, os.pardir)  # 父目录
-    path = os.path.abspath(parent)  # 当前目录的父目录
-    path += "\\clone_xml"  # 进入克隆结果所在文件夹
-    path += "\\apollo" if v0_filename.find("apollo") > -1 else "\\autoware"  # 根据检索的项目名称获取相应的文件路径父目录
-    files = os.listdir(path)  # 得到当前文件夹下所有文件
-    pattern = re.compile(r'\d+')
-    files.sort(key=lambda x: int(pattern.findall(x)[0] + pattern.findall(x)[1]))  # 对读取的路径进行排序
-
-    index = -1  # 起始文件的序号
-    for file in files:
-        file_name = os.path.basename(file)  # 获取文件名
-        if file_name == v0_filename:  # 如果找到了该起始文件
-            index = files.index(file)  # 得到该文件的序号
-            break  # 退出循环
-
-    # 筛选需要检测的提交文件
-    path = path.replace("clone_xml", "time_commit")  # 换到提交所在文件夹
-    files = os.listdir(path)  # 获取提交路径下的所有的文件
-    post_sourcefile = ""  # 记录最后一个版本的文件路径
-    for file in files[index:]:
-        file_name = os.path.basename(file)
-        digits = pattern.findall(file)
-        post_ver = int(digits[3] + digits[4]) if int(digits[4]) < 10 else int(digits[3])*10 + int(int(digits[4])/10)*10 + int(digits[4])%10   # 后一个版本号
-        v0_ver_digits = pattern.findall(v0_filename)
-        if v0_filename.find('apollo') > -1:
-            if (post_ver - int(v0_ver_digits[0] + v0_ver_digits[1])) / 5 > 4:
-                break
-            else:
-                post_sourcefile = "../time_commit/apollo/" + file_name
-                commit_xml_list.append(post_sourcefile)
-        elif v0_filename.find('autoware') > -1:
-            if post_ver - int(v0_ver_digits[0] + v0_ver_digits[1]) > 4:
-                break
-            else:
-                post_sourcefile = "../time_commit/autoware/" + file_name
-                commit_xml_list.append(post_sourcefile)
-
     # 进行错误倾向克隆检测，计算错误修复提交的平均修复时间
-    for commit_xml in commit_xml_list:
-        clone_block_dic, commit_dic = parse_xml(commit_xml, pre_sourcefile)  # 读取提交文件和克隆文件
+    for commit_xml in commit_files:
+        clone_block_dic, commit_dic = parse_xml(commit_xml, start_file)  # 读取提交文件和克隆文件
+        print("reading clone detection file " + start_file + "and\ncommit file " + commit_xml + ": Complete")
         fix_count, fix_time = extract_fix_time(commit_dic)  # 提取当前文件中的提交数量以及提交修复时间的总和
         sum_commit_count += fix_count  # 总提交数增加
         sum_commit_time += fix_time  # 总修复时间增加
@@ -197,52 +156,115 @@ def n_version_extract(v0_filename, num):
 
     # 对结果进行去重并按照模块名进行分组计数
     for index in list(bug_induce_result_dic.keys()):
-        pre_list = []   # 用于去重
+        pre_list = []  # 用于去重
         for result in bug_induce_result_dic[index]:  # 统计该克隆类内的克隆片段数量
             sourcefile = result['sourcefile']  # 文件路径
             startLineNumber = result['startLineNumber']  # 开始行号
             endLineNumber = result['endLineNumber']  # 结束行号
             if [sourcefile, startLineNumber, endLineNumber] not in pre_list:
                 pre_list.append([sourcefile, startLineNumber, endLineNumber])
-        if not len(pre_list) > 1:   # 如果包含的克隆片段不超过1个则不算为该克隆类存在错误倾向，直接跳过对比下一个
+        if not len(pre_list) > 1:  # 如果包含的克隆片段不超过1个则不算为该克隆类存在错误倾向，直接跳过对比下一个
             del bug_induce_result_dic[index]
             continue
     bug_module_result = module_utl.sort_module_bug_induce(bug_induce_result_dic)  # 按照模块名进行分组计数
     # 求出与克隆相关的提交的平均修复时间
-    clone_fix_time = bug_fix_time/len(bug_commit_list)
+    clone_fix_time = bug_fix_time / len(bug_commit_list)
     # 与克隆无关的提交的平均修复时间
-    no_clone_fix_time = (sum_commit_time - bug_fix_time)/(sum_commit_count - len(bug_commit_list))
-    pre_ver = pattern.findall(v0_filename)
-    post_ver = pattern.findall(post_sourcefile)
-    bug_module_result.update({
-        'bug_dup_count': len(bug_induce_result_dic),  # 错误倾向克隆数量
-        'clone_fix_time': str(clone_fix_time),  # 与克隆相关的平均修复时间
-        'no_clone_fix_time': str(no_clone_fix_time),  # 与克隆无关的提交的平均修复时间
-        'sum_commit_count': sum_commit_count,  # 所有提交的数量
-        'bug_commit_count': len(bug_commit_list),  # 与错误相关的提交数
-        'ver': pre_ver[0] + '.' + pre_ver[1] + '.' + pre_ver[2] + "_" + post_ver[3] + '.' + post_ver[4] + '.' + post_ver[5],
-        })
-    return bug_module_result
+
+    no_clone_fix_time = (sum_commit_time - bug_fix_time) / (sum_commit_count - len(bug_commit_list))
+    start_parts = os.path.basename(start_file).split('-')
+    end_parts = os.path.basename(file_list[-1]).split('-')
+    new_file_name = start_parts[0] + '-' + start_parts[1] + '-' + end_parts[1]  # 获取项目名和版本号
+
+    bug_module_result = add_dict(bug_module_result, 'no_clone_fix_time', str(no_clone_fix_time))
+    bug_module_result = add_dict(bug_module_result, 'clone_fix_time', str(clone_fix_time))
+    bug_module_result = add_dict(bug_module_result, 'bug_commit_count', len(bug_commit_list))
+    bug_module_result = add_dict(bug_module_result, 'sum_commit_count', sum_commit_count)
+    bug_module_result = add_dict(bug_module_result, 'bug_dup_count', len(bug_induce_result_dic))
+    bug_module_result = add_dict(bug_module_result, 'ver', new_file_name)
+
+    all_bug_induce_result.append(bug_module_result)
+
+
+def add_dict(original_dic, key, value):
+    new_dict = {key: value}  # 创建一个新的字典
+    new_dict.update(original_dic)  # 将原始字典的元素添加到新字典中
+    return new_dict
+
+
+def get_files(path, n):
+    # 获取目录下所有子目录
+    subdirs = [os.path.join(path, subdir) for subdir in os.listdir(path) if os.path.isdir(os.path.join(path, subdir))]
+    all_file_dict = {}
+    for subdir in subdirs:
+        # 获取子目录下所有文件
+        files = [os.path.join(subdir, file) for file in os.listdir(subdir)]
+        # 使用正则表达式匹配版本号
+        version_files = [(list(map(int, re.search(r'(\d+\.\d+\.\d+)', file).group(1).split('.'))), file) for file in
+                         files if
+                         re.search(r'(\d+\.\d+\.\d+)', file)]
+        # 按版本号排序
+        version_files.sort()
+        # 取出连续的n个文件
+        project_file_dict = {}
+        for i in range(len(version_files) - n + 1):
+            start_file = version_files[i][1]
+            file_list = [version_files[j][1] for j in range(i, i + n)]
+            project_file_dict[start_file] = file_list
+        # 将项目文件字典添加到总文件字典中
+        project_name = os.path.basename(subdir)
+        all_file_dict[project_name] = project_file_dict
+    return all_file_dict
+
+
+def get_version_dup(filename):  # 获取克隆文件里面的版本信息
+    match = re.search(r'(\d+\.\d+\.\d+)', filename)
+    if match:
+        version = match.groups()
+        return list(map(int, version[0].split('.')))
+
+
+def get_versions(filename):  # 得到commit文件的开始和结束版本
+    match = re.search(r'(\d+\.\d+\.\d+)_(\d+\.\d+\.\d+)_commit.xml', filename)
+    if match:
+        start_version, end_version = match.groups()
+        return list(map(int, start_version.split('.'))), list(map(int, end_version.split('.')))
+
+
+def get_commit_files(start_file, end_file, project_name):
+    start_version = get_version_dup(start_file)
+    end_version = get_version_dup(end_file)
+    directory = os.path.join(os.path.join(project_root_path, 'time_commit'), project_name)
+    files = [os.path.join(directory, file) for file in os.listdir(directory)]
+    files.sort(key=get_versions)
+    commit_files = []
+    for file in files:
+        file_start_version, file_end_version = get_versions(file)
+        if file_start_version >= start_version and file_end_version <= end_version:
+            commit_files.append(os.path.abspath(file))
+    return commit_files
 
 
 if __name__ == '__main__':
-    path = os.getcwd()  # 获取当前目录
-    parent = os.path.join(path, os.pardir)  # 父目录
-    path = os.path.abspath(parent)  # 当前目录的父目录
-    path += "\\clone_xml"  # 进入存储xml文件的文件夹
-    for filepath, dirnames, filenames in os.walk(path):
-        for dirname in dirnames:
-            all_bug_induce_result = []
-            d_path = path + "\\" + dirname
-            for filepath, dirnames, filenames in os.walk(d_path):
-                pattern = re.compile(r'\d+')
-                filenames.sort(key=lambda x: int(pattern.findall(x)[0] + pattern.findall(x)[1]))  # 对读取的路径进行排序
-                for filename in filenames:
-                    v0_filename = filename
-                    num = 5
-                    if len(filenames) - filenames.index(filename) < num:
-                        break
-                    all_bug_induce_result.append(n_version_extract(v0_filename, num))
-            save_name = "apollo_" if dirname.find("apollo") > -1 else "autoware_"
-            write_in_xsl.module_result_output_bug("../results/" + save_name + "bug_induce_results.xls", all_bug_induce_result)
+    # 获取当前文件的绝对路径
+    current_path = os.path.abspath(__file__)
+    # 获取当前文件所在目录的父目录，即项目根目录
+    project_root_path = os.path.dirname(os.path.dirname(current_path))
 
+    path = os.path.join(project_root_path, 'clone_xml')  # 你的目录路径
+
+    n = ver_num  # 你想要的文件数量
+    all_file_dict = get_files(path, n)  # 获取到所有的连续n个版本的文件名，保存到一个列表里面
+
+    for project_name, project_file_dict in all_file_dict.items():  # 遍历文件名的列表
+        all_bug_induce_result = []  # 检测的全部的版本的结果
+        print(f"Bug inducing Clone detection of the [{project_name}] project is in progress...")
+        for start_file, file_list in project_file_dict.items():
+            commit_files = get_commit_files(start_file, file_list[-1], project_name)
+            print(f"Bug inducing Clone detection of file [{start_file}] is in progress...")
+            n_version_detect(start_file, commit_files)  # 检测起始文件中的错误倾向克隆
+        # 将检测的所有的结果存入xls文件中
+        save_name = project_name  # 加入项目名
+        write_in_xsl.result_out("../results/" + project_name + "_bug_induce_dup_results.xlsx",
+                                all_bug_induce_result)  # 将得到的结果保存到excel表中
+        print("All Done!")
