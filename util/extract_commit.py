@@ -101,9 +101,14 @@ def add_text_element(dom, root_element, text, element_name):  # 用于添加需�
 
 
 if __name__ == '__main__':
-    save_name = "../time_commit"  # 提交存储的位置
+    # 获取当前文件的绝对路径
+    current_path = os.path.abspath(__file__)
+    # 获取当前文件所在目录的父目录，即项目根目录
+    project_root_path = os.path.dirname(os.path.dirname(current_path))
+    save_name = os.path.join(project_root_path, 'time_commit')  # 提交存储的父路径
     rep_dir = input("Input your repo dir:")  # 输入分析的项目仓库所在位置
-    save_name = save_name + 'apollo/' if 'apollo' in rep_dir else save_name + 'autoware/'
+    save_name += os.path.basename(rep_dir) + "/"
+    save_name += input("Input your save name:")  # 输入保存的文件名
     # 根据项目仓库的名称存到相应的目录下
     dt1 = input("Input the commit start datetime:(year,month,day,hour,minute,second)")  # 输入获取提交的起始时间
     dt2 = input("Input the commit end datetime:(year,month,day,hour,minute,second)")  # 输入获取提交的结束时间
