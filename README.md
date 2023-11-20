@@ -49,7 +49,8 @@ Use `Simian-2.5.10` to detect all the code clones of source files. See [Docs | S
 $ python module_sort.py
 ```
 
-the results of module distribution and cross-module clones will be put in `results/apollo_dup_results.xlsx` and `results/autoware_dup_results.xlsx`
+In the `util/module_utl.py` we define the default rules for separating module names. If you want to separate according to your own rules, you can modify pattern and special_cases in `util/module_utl.py`.
+The results of module distribution and cross-module clones will be put in `results/YourRepo_dup_results.xlsx`
 
 #### 2.6 Bug-prone clones detection
 
@@ -67,7 +68,8 @@ Enter the corresponding parameters according to the prompt. And all bug-fixing c
 $ python bug_induce_clone.py
 ```
 
-all the results will be put in `results/apollo_bug_induce_results.xlsx` and `results/autoware_bug_induce_results.xlsx`.
+all the summary results will be put in `results/YourRepo_bug_induce_results.xlsx`.
+all the data of bug-prone clones extracted will be put in `json/bug-induce`.
 
 #### 2.7 Co-modified clones detection
 
@@ -77,7 +79,8 @@ To extract all co-modified clones in the corresponding project, `cd` to `/analys
 $ python clone_comodify.py
 ```
 
-all the co-modified clone results will be put in `results/apollo_comodify_dup_results.xlsx` and `results/apollo_comodify_dup_results.xlsx`.
+all the co-modified clone results will be put in `results/YourRepo_comodify_dup_results.xlsx`.
+all the data of bug-prone clones extracted will be put in `json/comodify`.
 
 ## 3. Publication
 If you are interested in our work, you can find more details in our paper listed below. If you use our dateset and tool, please cite our paper.  
