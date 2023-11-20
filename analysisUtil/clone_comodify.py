@@ -4,6 +4,7 @@
 3.按照文件路径将两个文件的代码内容读出，求两者差异，得到差异位置行号，与克隆位置行号进行对比，如果有交集则证明为共变克隆，计入结果，结果字典以克隆类的id为key
 4.对上一步中得到的结果进行分组计数，筛去一个克隆序号对应的克隆结果不足2个的结果，即为最后的结果
 """
+import json
 import os
 import re
 import chardet
@@ -203,6 +204,8 @@ def n_version_detect(start_version_file, file_list):
     end_parts = os.path.basename(file_list[-1]).split('-')
     new_file_name = start_parts[0] + '-' + start_parts[1] + '-' + end_parts[1]  # 获取项目名和版本号
     new_dict = {'ver': new_file_name}  # 创建一个新的字典
+    with open(os.path.join("../json/comodify", new_file_name+"_comodify.json"), "w", encoding='utf-8') as f:
+        f.write(json.dumps(comodify_result, ensure_ascii=False, indent=4))
     new_dict.update(modify_result)  # 将原始字典的元素添加到新字典中
     all_commodify_results.append(new_dict)
 

@@ -36,7 +36,7 @@ def module_parse(xml_name):
     module_result = add_dict(module_result, 'totalFileCount', int(totalFileCount))  # 结果中加入源文件数
     module_result = add_dict(module_result, 'totalRawLineCount', int(totalRawLineCount))  # 结果中加入源代码数
     new_file_name = os.path.basename(xml_name).split('-')[0] + "_" + os.path.basename(xml_name).split('-')[1]
-    module_result = add_dict(module_result, 'ver', new_file_name)  # 假如项目名以及版本号
+    module_result = add_dict(module_result, 'ver', new_file_name)  # 加入项目名以及版本号
     sum_results.append(module_result)  # 将当前版本的克隆信息加入到总数据列表中
 
 

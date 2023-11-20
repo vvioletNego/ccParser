@@ -1,6 +1,7 @@
 # 以block粒度的克隆信息进行错误倾向的检测(设定一个初始版本以后检测后面四个版本的提交中的克隆错误倾向，加入修复时间的统计)
 import datetime
 import difflib
+import json
 import os
 import re
 import chardet
@@ -175,6 +176,12 @@ def n_version_detect(start_file, commit_files):
     start_parts = os.path.basename(start_file).split('-')
     end_parts = os.path.basename(file_list[-1]).split('-')
     new_file_name = start_parts[0] + '-' + start_parts[1] + '-' + end_parts[1]  # 获取项目名和版本号
+    for key, value in bug_induce_result_dic.items():
+        # 使用列表推导式和if x not in来去重，保持原有的顺序
+        bug_induce_result_dic[key] = [x for i, x in enumerate(value) if value.index(x) == i]
+
+    with open(os.path.join("../json/bug-induce", new_file_name+"_bug_induce.json"), "w", encoding='utf-8') as f:
+        f.write(json.dumps(bug_induce_result_dic, ensure_ascii=False, indent=4))
 
     bug_module_result = add_dict(bug_module_result, 'no_clone_fix_time', str(no_clone_fix_time))
     bug_module_result = add_dict(bug_module_result, 'clone_fix_time', str(clone_fix_time))

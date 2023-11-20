@@ -3,22 +3,27 @@ import collections
 import datetime
 import re
 
+# 这里默认参数定义了针对Apollo和Autoware的模块分类的pattern和特殊情况，如果希望使用自定义的规则可以传入相应的参数
+pattern="modules\\\\(\w+)|ros\\\\src\\\\(\w+)"
+special_cases = {
+            "computing": "computing\\\\(\w+)",
+            "perception": 'perception',
+            "canbus": 'canbus'
+        }
+
 
 # 从文件路径中分离出包名，以便统计各模块的克隆数
 def get_module_name(sourceFile):
-    pattern = "modules\\\\(\w+)|ros\\\\src\\\\(\w+)"  # 匹配模块名的前缀 apollo是modules目录下，autoware是src目录下
     result = re.findall(pattern, sourceFile)
     module_name = result[0][0] if not result[0][0] == "" else result[0][1]
-    if module_name == "computing":  # autoware的感知和规划模块都放在computing大模块下
-        pattern = "computing\\\\(\w+)"
-        result = re.findall(pattern, sourceFile)
-        module_name = result[0]
-    if module_name.find('perception') > -1:
-        # 前期包中存在一个third_party_perception，虽然在1.5.0后鼓励使用perception取代，但是一直保留所以都归类为perception
-        module_name = 'perception'
-    if module_name.find('canbus') > -1:
-        # 8.0.0出现了一个canbus_vehicle归类为canbus
-        module_name = 'canbus'
+
+    for case, new_pattern in special_cases.items():
+        if module_name == case:
+            result = re.findall(new_pattern, sourceFile)
+            module_name = result[0]
+        if module_name.find(case) > -1:
+            module_name = case
+
     return module_name
 
 

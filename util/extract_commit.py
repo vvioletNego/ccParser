@@ -103,7 +103,7 @@ def add_text_element(dom, root_element, text, element_name):  # 用于添加需�
 if __name__ == '__main__':
     save_name = "../time_commit"  # 提交存储的位置
     rep_dir = input("Input your repo dir:")  # 输入分析的项目仓库所在位置
-    save_name = save_name + 'apollo/' if 'apollo' in rep_dir else save_name + 'autoware/'
+    save_name = save_name + input("Input your commit save name: (repo_ver0_ver1_commit.xml, like 'apollo_1.0.0_1.5.0_commit.xml')")
     # 根据项目仓库的名称存到相应的目录下
     dt1 = input("Input the commit start datetime:(year,month,day,hour,minute,second)")  # 输入获取提交的起始时间
     dt2 = input("Input the commit end datetime:(year,month,day,hour,minute,second)")  # 输入获取提交的结束时间
