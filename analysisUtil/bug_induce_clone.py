@@ -5,6 +5,7 @@ import json
 import os
 import re
 import chardet
+from packaging import version
 from util import read_commit, read_clone, write_in_xsl, module_utl
 
 codes_file = {}  # 文件名对应的代码内容，避免重读
@@ -207,9 +208,9 @@ def get_files(path, n):
         # 获取子目录下所有文件
         files = [os.path.join(subdir, file) for file in os.listdir(subdir)]
         # 使用正则表达式匹配版本号
-        version_files = [(list(map(int, re.search(r'(\d+\.\d+\.\d+)', file).group(1).split('.'))), file) for file in
+        version_files = [(version.parse(re.search(r'(\d+\.\d+(\.\d+)?(\.\d+)?)', file).group(1)), file) for file in
                          files if
-                         re.search(r'(\d+\.\d+\.\d+)', file)]
+                         re.search(r'(\d+\.\d+(\.\d+)?(\.\d+)?)', file)]
         # 按版本号排序
         version_files.sort()
         # 取出连续的n个文件
@@ -225,17 +226,22 @@ def get_files(path, n):
 
 
 def get_version_dup(filename):  # 获取克隆文件里面的版本信息
-    match = re.search(r'(\d+\.\d+\.\d+)', filename)
+    match = re.search(r'(\d+\.\d+(\.\d+)?(\.\d+)?)', filename)
     if match:
-        version = match.groups()
-        return list(map(int, version[0].split('.')))
+        return version.parse(match.group(1))
 
 
 def get_versions(filename):  # 得到commit文件的开始和结束版本
-    match = re.search(r'(\d+\.\d+\.\d+)_(\d+\.\d+\.\d+)_commit.xml', filename)
+    match = re.search(r'(\d+\.\d+(\.\d+)?(\.\d+)?)(_(\d+\.\d+(\.\d+)?(\.\d+)?))?', filename)
     if match:
-        start_version, end_version = match.groups()
-        return list(map(int, start_version.split('.'))), list(map(int, end_version.split('.')))
+        start_version_str = match.group(1)
+        end_version_str = match.group(5)  # group 5 corresponds to the second version number
+        start_version = version.parse(start_version_str)
+        end_version = version.parse(end_version_str) if end_version_str else None
+        return start_version, end_version
+    else:
+        exit(-1)
+        print("解析修复提交信息文件中的版本名出错！请检查命名或者重写解析规则！")
 
 
 def get_commit_files(start_file, end_file, project_name):

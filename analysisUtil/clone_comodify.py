@@ -10,6 +10,7 @@ import re
 import chardet
 from util import read_clone, write_in_xsl, module_utl
 import difflib
+from packaging import version
 
 
 all_commodify_results = []  # 检测的全部的版本的结果
@@ -145,9 +146,9 @@ def get_files(path, n):
         # 获取子目录下所有文件
         files = [os.path.join(subdir, file) for file in os.listdir(subdir)]
         # 使用正则表达式匹配版本号
-        version_files = [(list(map(int, re.search(r'(\d+\.\d+\.\d+)', file).group(1).split('.'))), file) for file in
+        version_files = [(version.parse(re.search(r'(\d+\.\d+(\.\d+)?(\.\d+)?)', file).group(1)), file) for file in
                          files if
-                         re.search(r'(\d+\.\d+\.\d+)', file)]
+                         re.search(r'(\d+\.\d+(\.\d+)?(\.\d+)?)', file)]
         # 按版本号排序
         version_files.sort()
         # 取出连续的n个文件
