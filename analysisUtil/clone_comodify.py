@@ -196,7 +196,7 @@ def n_version_detect(start_version_file, file_list):
     modify_result = module_utl.sort_module(comodify_result)  # 统计行数和跨模块的数据
     change_modify_result = module_utl.sort_module(change_comidify_results)  # 统计更改行的行数和跨模块克隆上的数据
 
-    modify_result['change_cross_dup_line'] = change_modify_result['cross_dup_count']
+    modify_result['change_cross_dup_line'] = change_modify_result['cross_dup_line']
     modify_result['change_line'] = change_modify_result['dup_line']
     modify_result['change_dup_module'] = change_modify_result['dup_module']
 
