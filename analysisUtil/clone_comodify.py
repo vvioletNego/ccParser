@@ -40,9 +40,9 @@ def detect(pre_clone_dic, post_clone_dic, comodify_result):  # 对比两个文�
         pre_old_sourcefile_list = {x['old_sourcefile'] for x in pre_clone_list}
         post_old_sourcefile_list = {x['old_sourcefile'] for x in post_clone_list}
         for pre_old_sourcefile in pre_old_sourcefile_list:
-            pre_old_sourcefile_path = "".join(pre_old_sourcefile.split("\\")[-3:-1])
+            pre_old_sourcefile_path = "".join(pre_old_sourcefile.replace("\\", "/").split("/")[-3:])
             for post_old_sourcefile in post_old_sourcefile_list:
-                post_old_sourcefile_path = "".join(post_old_sourcefile.split("\\")[-3:-1])
+                post_old_sourcefile_path = "".join(post_old_sourcefile.replace("\\", "/").split("/")[-3:])
                 if pre_old_sourcefile_path.find(post_old_sourcefile_path) > -1:
                     pre_code = read_cpp(pre_old_sourcefile)
                     post_code = read_cpp(post_old_sourcefile)  # 读取两个文件路径下的源码
