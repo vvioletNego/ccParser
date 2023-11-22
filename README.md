@@ -84,7 +84,14 @@ All the data of co-modified clones extracted will be put in `json/comodify`.
 
 ## 3. Publication
 If you are interested in our work, you can find more details in our paper listed below. If you use our dateset and tool, please cite our paper.  
-A Comprehensive Study on Code Clones in Automated Driving Software  
-38th International Conference on Automated Software Engineering (ASE'23)
+```
+@INPROCEEDINGS{10298437,
+  author={Mo, Ran and Jiang, Yingjie and Zhan, Wenjing and Wang, Dongyu and Li, Zengyang},
+  booktitle={2023 38th IEEE/ACM International Conference on Automated Software Engineering (ASE)}, 
+  title={A Comprehensive Study on Code Clones in Automated Driving Software}, 
+  year={2023},
+  pages={1073-1085},
+  doi={10.1109/ASE56229.2023.00053}}
+```
 
 
