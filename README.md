@@ -83,7 +83,7 @@ All the summary results will be put in `results/YourRepo_comodify_dup_results.xl
 All the data of co-modified clones extracted will be put in `json/comodify`.
 
 ## 3. New version
-We have launched a new method and placed it in the directory `/analysisUtil_new`. It is currently being tested. The usage method is in the [`/analysisUtil_new/readme.md`](https://github.com/vvioletNego/ccParser/edit/master/README.md).
+We have launched a new method and placed it in the directory `/analysisUtil_new`. It is currently being tested. The usage method is in the [`/analysisUtil_new/readme.md`](https://github.com/vvioletNego/ccParser/blob/master/analysisUtil_new/readme.md).
 
 ## 4. Publication
 If you are interested in our work, you can find more details in our paper listed below. If you use our dateset and tool, please cite our paper.  
