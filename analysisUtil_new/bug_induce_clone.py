@@ -73,7 +73,8 @@ def check_intersection(pre_file, pre_clone_list, post_line_index_list, line_inde
         if not clone_involve:  # 如果当前修改位置上没有涉及前一个版本的克隆片段，直接跳过
             continue
         new_start, new_end = line_index['new_start'], line_index['new_end']  # 获得更改之后的开始行号和结束行号
-        inter_flag = any(not (new_start > post_index['new_end'] or new_end < post_index['new_start']) for post_index in post_line_index_list)
+        inter_flag = any(not (new_start > post_index['new_end'] or new_end < post_index['new_start']) for post_index in
+                         post_line_index_list)
         if inter_flag:
             bug_clone_list.extend({'fingerprint': clone[2],
                                    'sourcefile': pre_file,
@@ -89,7 +90,8 @@ def extract_diff(diff_list, pre_clone_dic, commit_modified_files):
     for diff in diff_list:
         pre_file = re.findall("[-][-][-] a/(.*)", diff)
         post_file = re.findall("[+][+][+] b/(.*)", diff)
-        if not pre_file or not post_file or pre_file[0] not in pre_clone_dic or post_file[0] not in commit_modified_files:
+        if not pre_file or not post_file or pre_file[0] not in pre_clone_dic or post_file[
+            0] not in commit_modified_files:
             continue
         pre_file, post_file = pre_file[0], post_file[0]
         line_index_list = find_line_index(diff)
@@ -166,9 +168,19 @@ def n_version_process(tags, repo, project_name):
     all_results = []
     corrective_word_list = ['bug', 'fix', 'wrong', 'error', 'fail', 'problem', 'patch', 'correct']
     for tag0 in tags:
+        if len(tags) - tags.index(tag0) < tag_range:  # 如果剩下的tag不足够设定的版本跨度，直接退出
+            break
+        clone_exist = True
+        for cpm_tag in tags[tags.index(tag0) + 1:tags.index(tag0) + tag_range]:
+            if not os.path.exists(os.path.join(clone_path, project_name + "/" + repo_name.split('/')[
+                -1] + "-" + cpm_tag + ".xml")):
+                clone_exist = False
+        if not clone_exist:  # 如果对比的版本的克隆文件不存在直接跳过
+            continue
         print("开始进行版本" + tag0 + "的克隆错误倾向分析")
         tag1 = tags[tags.index(tag0) + tag_range - 1]  # 得到需要分析的最后一个版本的版本号
-        pre_sourcefile = os.path.join(clone_path, repo_name.split('/')[-1] + "/" + repo_name.split('/')[-1] + "-" + tag0 + ".xml")
+        pre_sourcefile = os.path.join(clone_path,
+                                      project_name + "/" + project_name + "-" + tag0 + ".xml")
         # 初始版本的克隆信息文件路径
         pre_clone_dic = read_clone_block(pre_sourcefile)
         print("已读取版本" + tag0 + "的克隆结果")
@@ -178,10 +190,11 @@ def n_version_process(tags, repo, project_name):
             "已完成错误修复提交的筛选, 提交总数为:" + str(sum_commit_count) + " 错误提交数量为:" + str(len(bug_commit)))
         # 获取错误修复提交，计算提交总数
         clone_bug_fix_time = datetime.timedelta(seconds=0)  # 克隆相关的平均修复时间
-        no_clone_bug_fix_time = datetime.timedelta(seconds=0)   # 克隆无关的平均修复时间
+        no_clone_bug_fix_time = datetime.timedelta(seconds=0)  # 克隆无关的平均修复时间
         bug_inducing_result = {}  # 与错误相关的克隆信息
         for commit_id in bug_commit:
-            bug_clone_result, bug_clone_commit = extract_cloned_fix_commit(tag0, commit_id, repo, pre_clone_dic, file_extensions)
+            bug_clone_result, bug_clone_commit = extract_cloned_fix_commit(tag0, commit_id, repo, pre_clone_dic,
+                                                                           file_extensions)
             # 判断当前提交是否与克隆相关，得到所有相关的克隆片段信息
             buggy_commits = gr.get_commits_last_modified_lines(gr.get_commit(commit_id))
             # 获取所有最后接触到当前提交种修改行的提交
@@ -221,7 +234,8 @@ def n_version_process(tags, repo, project_name):
             'ver': project_name + "-" + tag0 + "_" + tag1,
         })
         # 添加总结信息保存
-        print("已完成版本" + project_name + " " + tag0 + "的错误倾向克隆的代码计算以及模块分布的统计!正在保存结果......")
+        print(
+            "已完成版本" + project_name + " " + tag0 + "的错误倾向克隆的代码计算以及模块分布的统计!正在保存结果......")
         all_results.append(bug_module_result)
         # 保存到总结果中
     return all_results
@@ -243,4 +257,4 @@ if __name__ == "__main__":
     print("当前检测的仓库名为:" + repo_name + " tag数量为:" + str(len(tags)) + " 检测的tag跨度为:" + str(tag_range))
     all_results = n_version_process(tags, repo, project_name)
     result_out(os.path.join(save_path, project_name + "_bug_induce_results.xlsx"), all_results)
-    print("已完成对项目" + repo_name.split('/')[-1] + "的错误倾向克隆检测!")
+    print("已完成对项目" + project_name + "的错误倾向克隆检测!")
